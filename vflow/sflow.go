@@ -187,6 +187,7 @@ LOOP:
 		records, err := d.SFDecode()
 		if err != nil || len(records) < 1 {
 			sFlowBuffer.Put(msg.body[:opts.SFlowUDPSize])
+			logger.Printf("ERROR can't decode sflow with: %v", err)
 			continue
 		}
 
@@ -208,7 +209,7 @@ LOOP:
 		b, err = json.Marshal(decodedMsg)
 		if err != nil {
 			sFlowBuffer.Put(msg.body[:opts.SFlowUDPSize])
-			logger.Println(err)
+			logger.Println("ERROR can't marshal decoded sflow json with:", err)
 			continue
 		}
 
@@ -218,11 +219,7 @@ LOOP:
 			logger.Println(string(b))
 		}
 
-		select {
-		case sFlowMQCh <- append([]byte{}, b...):
-		default:
-		}
-
+		sFlowMQCh <- b
 		sFlowBuffer.Put(msg.body[:opts.SFlowUDPSize])
 	}
 }
